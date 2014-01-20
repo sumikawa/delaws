@@ -15,17 +15,20 @@ Aws.config = {
 
 ec2 = Aws::EC2.new
 
-vpcs = ec2.describe_vpcs.first.vpcs
-subnets = ec2.describe_subnets.first.subnets
-reservations = ec2.describe_instances.reservations
-
 idx = {}
 
-subnets.each do |subnet|
-  idx[subnet.vpc_id] ||= []
-  idx[subnet.vpc_id].push(subnet.subnet_id)
+['vpc', 'subnet', 'volume'].each do |r|
+  eval("ec2.describe_#{r}s.first.#{r}s").each do |h|
+    h.each do |k, v|
+      if k =~ /_id$/ && h[k] != eval("h.#{r}_id")
+        idx[h[k]] ||= []
+        idx[h[k]].push(eval("h.#{r}_id"))
+      end
+    end
+  end
 end
 
+reservations = ec2.describe_instances.reservations
 if reservations
   reservations.each do |reservation|
     instance = reservation.instances.first
