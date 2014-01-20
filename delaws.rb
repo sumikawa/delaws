@@ -44,12 +44,10 @@ elb = Aws::ElasticLoadBalancing.new
 load_balancer_descriptions = elb.describe_load_balancers.load_balancer_descriptions
 if load_balancer_descriptions
   load_balancer_descriptions.each do |load_balancer_description|
-    load_balancer_description = load_balancer_descriptions.first
     load_balancer_description.each do |k, v|
-      if k =~ /(dns_name|vpc_id)$/ && v != load_balancer_description.load_balancer_name
-        puts "#{k}: #{v}, #{load_balancer_description.load_balancer_name}"
+      if k =~ /vpc_id$/ && v != load_balancer_description.load_balancer_name
         idx[v] ||= []
-        idx[v].push(load_balancer_description.load_balancer_name)
+        idx[v].push("elb-#{load_balancer_description.load_balancer_name}")
       end
     end
   end
