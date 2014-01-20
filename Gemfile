@@ -1,0 +1,7 @@
+source 'https://rubygems.org'
+gem 'aws-sdk-core', '~> 2.0.0.rc1'
+gem 'pry'
+gem 'awesome_print'
+gem 'inifile'
+#gem 'aws-sdk', '~> 1.0'
+#gem 'nokogiri', '~> 1.5.0'
