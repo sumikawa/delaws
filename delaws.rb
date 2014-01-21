@@ -33,17 +33,7 @@ reservations = ec2.describe_instances.reservations
 if reservations
   reservations.each do |reservation|
     instance = reservation.instances.first
-    instance.each do |k, v|
-      if k =~ /(security_groups|_id)$/ && v != instance.instance_id
-#        binding.pry
-        @idx[v] ||= []
-        @idx[v].push(instance.instance_id)
-        #        if v.class.to_s === 'Array'
-        #          pp "** #{k} #{v}"
-        #          idx[v].push(instance.instance_id)
-        #        end
-      end
-    end
+    findid(instance, "(security_groups|_id)", "instance_id")
   end
 end
 
@@ -51,13 +41,7 @@ elb = Aws::ElasticLoadBalancing.new
 rs = elb.describe_load_balancers.load_balancer_descriptions
 if rs
   rs.each do |r|
-    r.each do |k, v|
-      #      if k =~ /(security_groups|subnets|vpc_id)$/ && v != r.load_balancer_name
-      if k =~ /(subnets|vpc_id)$/ && v != r.load_balancer_name
-        @idx[v] ||= []
-        @idx[v].push("elb-#{r.load_balancer_name}")
-      end
-    end
+    findid(r, "(security_groups|subnets|vpc_id)", "load_balancer_name")
   end
 end
 
