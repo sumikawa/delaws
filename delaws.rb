@@ -4,6 +4,7 @@ require 'pp'
 require 'pry'
 require 'inifile'
 require 'optparse'
+require_relative 'findid'
 
 ini = IniFile.load(File.expand_path("~/.aws/config"))
 
@@ -19,17 +20,12 @@ Aws.config = {
   region: region.nil? ? ini['default']['region'] : region,
 }
 
-idx = {}
+@idx = {}
 
 ec2 = Aws::EC2.new
 ['vpc', 'subnet', 'volume'].each do |r|
   eval("ec2.describe_#{r}s.first.#{r}s").each do |h|
-    h.each do |k, v|
-      if k =~ /_id$/ && v != eval("h.#{r}_id")
-        idx[v] ||= []
-        idx[v].push(eval("h.#{r}_id"))
-      end
-    end
+    findid(h, "_id", "#{r}_id")
   end
 end
 
@@ -39,8 +35,8 @@ if reservations
     instance = reservation.instances.first
     instance.each do |k, v|
       if k =~ /_id$/ && v != instance.instance_id
-        idx[v] ||= []
-        idx[v].push(instance.instance_id)
+        @idx[v] ||= []
+        @idx[v].push(instance.instance_id)
       end
     end
   end
@@ -52,11 +48,11 @@ if load_balancer_descriptions
   load_balancer_descriptions.each do |load_balancer_description|
     load_balancer_description.each do |k, v|
       if k =~ /vpc_id$/ && v != load_balancer_description.load_balancer_name
-        idx[v] ||= []
-        idx[v].push("elb-#{load_balancer_description.load_balancer_name}")
+        @idx[v] ||= []
+        @idx[v].push("elb-#{load_balancer_description.load_balancer_name}")
       end
     end
   end
 end
 
-pp idx
+pp @idx
