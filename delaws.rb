@@ -34,22 +34,41 @@ if reservations
   reservations.each do |reservation|
     instance = reservation.instances.first
     instance.each do |k, v|
-      if k =~ /_id$/ && v != instance.instance_id
+      if k =~ /(security_groups|_id)$/ && v != instance.instance_id
+#        binding.pry
         @idx[v] ||= []
         @idx[v].push(instance.instance_id)
+        #        if v.class.to_s === 'Array'
+        #          pp "** #{k} #{v}"
+        #          idx[v].push(instance.instance_id)
+        #        end
       end
     end
   end
 end
 
 elb = Aws::ElasticLoadBalancing.new
-load_balancer_descriptions = elb.describe_load_balancers.load_balancer_descriptions
-if load_balancer_descriptions
-  load_balancer_descriptions.each do |load_balancer_description|
-    load_balancer_description.each do |k, v|
-      if k =~ /vpc_id$/ && v != load_balancer_description.load_balancer_name
+rs = elb.describe_load_balancers.load_balancer_descriptions
+if rs
+  rs.each do |r|
+    r.each do |k, v|
+      #      if k =~ /(security_groups|subnets|vpc_id)$/ && v != r.load_balancer_name
+      if k =~ /(subnets|vpc_id)$/ && v != r.load_balancer_name
         @idx[v] ||= []
-        @idx[v].push("elb-#{load_balancer_description.load_balancer_name}")
+        @idx[v].push("elb-#{r.load_balancer_name}")
+      end
+    end
+  end
+end
+
+rds = Aws::RDS.new
+rs = rds.describe_db_instances.db_instances
+if rs
+  rs.each do |r|
+    r.each do |k, v|
+      if k =~ /_id$/ && v != r.db_instance_identifier
+        @idx[v] ||= []
+        @idx[v].push("db-#{r.db_instance_identifier}")
       end
     end
   end
