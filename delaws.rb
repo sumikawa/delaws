@@ -3,14 +3,20 @@ require 'aws-sdk-core'
 require 'pp'
 require 'pry'
 require 'inifile'
-#require 'optparse'
+require 'optparse'
 
 ini = IniFile.load(File.expand_path("~/.aws/config"))
+
+region = nil
+OptionParser.new do |opt|
+  opt.on('--region REGION') {|v| region=v }
+  opt.parse!(ARGV)
+end
 
 Aws.config = {
   access_key_id: ini['default']['aws_access_key_id'],
   secret_access_key: ini['default']['aws_secret_access_key'],
-  region: ini['default']['region'],
+  region: region.nil? ? ini['default']['region'] : region,
 }
 
 idx = {}
