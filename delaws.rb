@@ -9,8 +9,11 @@ require_relative 'findid'
 ini = IniFile.load(File.expand_path("~/.aws/config"))
 
 region = nil
+@opt = {}
 OptionParser.new do |opt|
-  opt.on('--region REGION') {|v| region=v }
+  opt.version = "0.1"
+  opt.on('-r REGION', '--region REGION') {|v| region=v }
+  opt.on('-d', '--debug') {|v| @opt[:debug] = true }
   opt.parse!(ARGV)
 end
 
