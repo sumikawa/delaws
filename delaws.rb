@@ -56,4 +56,12 @@ if rs
   end
 end
 
+as = Aws::AutoScaling.new
+rs = as.describe_auto_scaling_groups.auto_scaling_groups
+if rs
+  rs.each do |r|
+    findid(r, "(vpc_zone_identifier|_name|_id)", "auto_scaling_group_name")
+  end
+end
+
 pp @idx
