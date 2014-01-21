@@ -40,21 +40,19 @@ if reservations
   end
 end
 
-Aws::ElasticLoadBalancing.new do |elb|
-  rs = elb.describe_load_balancers.load_balancer_descriptions
-  if rs
-    rs.each do |r|
-      findid(r, "(security_groups|subnets|vpc_id)", "load_balancer_name")
-    end
+elb = Aws::ElasticLoadBalancing.new
+rs = elb.describe_load_balancers.load_balancer_descriptions
+if rs
+  rs.each do |r|
+    findid(r, "(security_groups|subnets|vpc_id)", "load_balancer_name")
   end
 end
 
-Aws::RDS.new do |rds|
-  rs = rds.describe_db_instances.db_instances
-  if rs
-    rs.each do |r|
-      findid(r, "(_name|_id)", "db_instance_identifier")
-    end
+rds = Aws::RDS.new
+rs = rds.describe_db_instances.db_instances
+if rs
+  rs.each do |r|
+    findid(r, "(_name|_id)", "db_instance_identifier")
   end
 end
 
