@@ -49,19 +49,20 @@ if rs
 end
 
 rds = Aws::RDS.new
-rs = rds.describe_db_instances.db_instances
-if rs
-  rs.each do |r|
-    findid(r, "(_name|_id)", "db_instance_identifier")
+['db_instance', 'db_snapshot'].each do |i|
+  rs = eval("rds.describe_#{i}s.#{i}s")
+  if rs
+    rs.each do |r|
+      findid(r, "(_name|_id)", "#{i}_identifier")
+    end
   end
 end
-rs = rds.describe_db_snapshots.db_snapshots
+rs = rds.describe_events.events
 if rs
   rs.each do |r|
-    findid(r, "(_id)", "db_snapshot_identifier")
+    findid(r, "(_name|_id)", "source_identifier")
   end
 end
-
 
 as = Aws::AutoScaling.new
 rs = as.describe_auto_scaling_groups.auto_scaling_groups
