@@ -55,12 +55,27 @@ if rs
     findid(r, "(_name|_id)", "db_instance_identifier")
   end
 end
+rs = rds.describe_db_snapshots.db_snapshots
+if rs
+  rs.each do |r|
+    findid(r, "(_id)", "db_snapshot_identifier")
+  end
+end
+
 
 as = Aws::AutoScaling.new
 rs = as.describe_auto_scaling_groups.auto_scaling_groups
 if rs
   rs.each do |r|
     findid(r, "(vpc_zone_identifier|_name|_id)", "auto_scaling_group_name")
+  end
+end
+
+cw = Aws::CloudWatch.new
+rs = cw.describe_alarms.metric_alarms
+if rs
+  rs.each do |r|
+    findid(r, "", "alarm_name")
   end
 end
 
