@@ -49,12 +49,7 @@ rds = Aws::RDS.new
 rs = rds.describe_db_instances.db_instances
 if rs
   rs.each do |r|
-    r.each do |k, v|
-      if k =~ /_id$/ && v != r.db_instance_identifier
-        @idx[v] ||= []
-        @idx[v].push("db-#{r.db_instance_identifier}")
-      end
-    end
+    findid(r, "(_name|_id)", "db_instance_identifier")
   end
 end
 

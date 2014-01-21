@@ -4,14 +4,21 @@ end
 
 def findid_h(orig_resource, resource, regex, myid)
   resource.each do |k, v|
-    if v.kind_of?(Array)
-      findid_a(orig_resource, v, regex, myid)
-    elsif v.kind_of?(Hash)
-      puts "Hash exists on #{k}"
+    if v.kind_of?(Hash)
+      findid_h(orig_resource, v, regex, myid)
     elsif k =~ /#{regex}$/ && v != eval("orig_resource.#{myid}")
-      @idx[v] ||= []
-      @idx[v].push(eval("orig_resource.#{myid}"))
+      if v.kind_of?(Array)
+        v.each do |i|
+          @idx[i] ||= []
+          @idx[i].push(eval("orig_resource.#{myid}"))
+        end
+      elsif
+        @idx[v] ||= []
+        @idx[v].push(eval("orig_resource.#{myid}"))
+      end
       puts "*** #{myid}: #{k}: #{v}"
+    elsif v.kind_of?(Array)
+      findid_a(orig_resource, v, regex, myid)
     else
       puts "#{myid}: #{k}: #{v}"
     end
@@ -21,9 +28,9 @@ end
 def findid_a(orig_resource, resource, regex, myid)
   resource.each do |i|
     if i.kind_of?(Array)
-      puts "Array exists on #{k}"
-    elsif i.kind_of?(Hash)
-      puts "Hash exists on #{k}"
+      puts "Array exists on #{i}"
+    elsif i.kind_of?(String)
+      puts "String exists on #{i}"
     else
       findid_h(orig_resource, i, regex, myid)
     end
