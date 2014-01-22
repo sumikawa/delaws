@@ -14,7 +14,7 @@ ini = IniFile.load(File.expand_path("~/.aws/config"))
 region = nil
 @opt = {}
 OptionParser.new do |opt|
-  opt.version = "0.1"
+  opt.version = VERSION
   opt.on('-r REGION', '--region REGION') {|v| region=v }
   opt.on('-d', '--debug') {|v| @opt[:debug] = true }
   opt.parse!(ARGV)
@@ -27,7 +27,7 @@ Aws.config = {
 }
 
 # for AWS SWF
-swf_domain = "DelAws"
+delaws_domain = "DelAws"
 AWS.config(
   access_key_id: ini['default']['aws_access_key_id'],
   secret_access_key: ini['default']['aws_secret_access_key'],
@@ -91,38 +91,38 @@ if rs
   end
 end
 
-pp @idx
+#pp @idx
 
-$SWF = AWS::SimpleWorkflow.new
+swf = AWS::SimpleWorkflow.new
 
 begin
-  swf_domain = $SWF.domains.create(swf_domain, "10")
+  swf_domain = swf.domains.create(delaws_domain, "10")
 rescue AWS::SimpleWorkflow::Errors::DomainAlreadyExistsFault => e
-  swf_domain = $SWF.domains[swf_domain]
+  swf_domain = swf.domains[delaws_domain]
 end
 
 # Get a workflow client to start the workflow
-my_workflow_client = AWS::Flow.workflow_client($SWF.client, swf_domain) do
+$my_workflow_client = AWS::Flow.workflow_client(swf.client, swf_domain) do
   {:from_class => "DelawsWorkflow"}
 end
 
 t1 = Thread.new do
-    activity_worker = AWS::Flow::ActivityWorker.new($SWF.client, swf_domain, $task_list, DelawsActivity) { {:use_forking => false} }
+    activity_worker = AWS::Flow::ActivityWorker.new(swf.client, swf_domain, $task_list, DelawsActivity) { {:use_forking => false} }
     puts "starting activity worker #{Thread.current.object_id}" if @opt[:debug] == true
     activity_worker.start
 end
 
 t2 = Thread.new do
-    worker = AWS::Flow::WorkflowWorker.new($SWF.client, swf_domain, $task_list, DelawsWorkflow)
+    worker = AWS::Flow::WorkflowWorker.new(swf.client, swf_domain, $task_list, DelawsWorkflow)
     puts "starting workflow worker #{Thread.current.object_id}" if @opt[:debug] == true
     worker.start
 end
 
 puts "Starting an execution..."
 
-workflow_execution = my_workflow_client.start_execution("a")
-workflow_execution = my_workflow_client.start_execution("b")
-workflow_execution = my_workflow_client.start_execution("c")
-workflow_execution = my_workflow_client.start_execution("d")
+workflow_execution = $my_workflow_client.start_execution("a")
+#workflow_execution = $my_workflow_client.start_execution("b")
+#workflow_execution = $my_workflow_client.start_execution("c")
+#workflow_execution = $my_workflow_client.start_execution("d")
 
 sleep 100
