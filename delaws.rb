@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+require 'aws/decider'
 require 'aws-sdk-core'
 require 'pp'
 require 'pry'
@@ -22,6 +23,15 @@ Aws.config = {
   secret_access_key: ini['default']['aws_secret_access_key'],
   region: region.nil? ? ini['default']['region'] : region,
 }
+
+# for AWS SWF
+$SWF_DOMAIN = "DelAws"
+$TASK_LIST = "delaws_task_list"
+AWS.config(
+  access_key_id: ini['default']['aws_access_key_id'],
+  secret_access_key: ini['default']['aws_secret_access_key'],
+  region: region.nil? ? ini['default']['region'] : region
+)
 
 @idx = {}
 
@@ -81,3 +91,69 @@ if rs
 end
 
 pp @idx
+
+class DelawsActivity
+  extend AWS::Flow::Activities
+
+  activity :delaws_activity do
+    {
+      :default_task_list => $TASK_LIST, :version => "my_first_activity",
+      :default_task_schedule_to_start_timeout => 30,
+      :default_task_start_to_close_timeout => 30
+    }
+  end
+
+  def delaws_activity(name)
+    puts "Hello, #{name}! I'm #{Thread.current.object_id}"
+  end
+end
+class DelawsWorkflow
+  extend AWS::Flow::Workflows
+
+  workflow :delaws_workflow do
+  {
+    :version => "1", :execution_start_to_close_timeout => 3600, :task_list => $TASK_LIST
+  }
+  end
+
+  activity_client(:activity) { {:from_class => "DelawsActivity"} }
+
+  def delaws_workflow(name)
+    activity.delaws_activity(name)
+  end
+end
+
+$SWF = AWS::SimpleWorkflow.new
+
+begin
+  $SWF_DOMAIN = $SWF.domains.create($SWF_DOMAIN, "10")
+rescue AWS::SimpleWorkflow::Errors::DomainAlreadyExistsFault => e
+  $SWF_DOMAIN = $SWF.domains[$SWF_DOMAIN]
+end
+
+
+# Get a workflow client to start the workflow
+my_workflow_client = AWS::Flow.workflow_client($SWF.client, $SWF_DOMAIN) do
+  {:from_class => "DelawsWorkflow"}
+end
+
+t1 = Thread.new do
+    activity_worker = AWS::Flow::ActivityWorker.new($SWF.client, $SWF_DOMAIN, $TASK_LIST, DelawsActivity) { {:use_forking => false} }
+    puts "starting activity worker #{Thread.current.object_id}" if @opt[:debug] == true
+    activity_worker.start
+end
+
+t2 = Thread.new do
+    worker = AWS::Flow::WorkflowWorker.new($SWF.client, $SWF_DOMAIN, $TASK_LIST, DelawsWorkflow)
+    puts "starting workflow worker #{Thread.current.object_id}" if @opt[:debug] == true
+    worker.start
+end
+
+puts "Starting an execution..."
+
+workflow_execution = my_workflow_client.start_execution("a")
+workflow_execution = my_workflow_client.start_execution("b")
+workflow_execution = my_workflow_client.start_execution("c")
+workflow_execution = my_workflow_client.start_execution("d")
+
+sleep 100
