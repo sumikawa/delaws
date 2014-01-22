@@ -6,6 +6,7 @@ require 'pry'
 require 'inifile'
 require 'optparse'
 require_relative 'findid'
+require_relative 'swf'
 
 ini = IniFile.load(File.expand_path("~/.aws/config"))
 
@@ -92,37 +93,6 @@ end
 
 pp @idx
 
-class DelawsActivity
-  extend AWS::Flow::Activities
-
-  activity :delaws_activity do
-    {
-      :default_task_list => $TASK_LIST, :version => "my_first_activity",
-      :default_task_schedule_to_start_timeout => 30,
-      :default_task_start_to_close_timeout => 30
-    }
-  end
-
-  def delaws_activity(name)
-    puts "Hello, #{name}! I'm #{Thread.current.object_id}"
-  end
-end
-class DelawsWorkflow
-  extend AWS::Flow::Workflows
-
-  workflow :delaws_workflow do
-  {
-    :version => "1", :execution_start_to_close_timeout => 3600, :task_list => $TASK_LIST
-  }
-  end
-
-  activity_client(:activity) { {:from_class => "DelawsActivity"} }
-
-  def delaws_workflow(name)
-    activity.delaws_activity(name)
-  end
-end
-
 $SWF = AWS::SimpleWorkflow.new
 
 begin
@@ -130,7 +100,6 @@ begin
 rescue AWS::SimpleWorkflow::Errors::DomainAlreadyExistsFault => e
   $SWF_DOMAIN = $SWF.domains[$SWF_DOMAIN]
 end
-
 
 # Get a workflow client to start the workflow
 my_workflow_client = AWS::Flow.workflow_client($SWF.client, $SWF_DOMAIN) do
