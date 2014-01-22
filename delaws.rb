@@ -26,7 +26,7 @@ Aws.config = {
 }
 
 # for AWS SWF
-$SWF_DOMAIN = "DelAws"
+swf_domain = "DelAws"
 $TASK_LIST = "delaws_task_list"
 AWS.config(
   access_key_id: ini['default']['aws_access_key_id'],
@@ -96,24 +96,24 @@ pp @idx
 $SWF = AWS::SimpleWorkflow.new
 
 begin
-  $SWF_DOMAIN = $SWF.domains.create($SWF_DOMAIN, "10")
+  swf_domain = $SWF.domains.create(swf_domain, "10")
 rescue AWS::SimpleWorkflow::Errors::DomainAlreadyExistsFault => e
-  $SWF_DOMAIN = $SWF.domains[$SWF_DOMAIN]
+  swf_domain = $SWF.domains[swf_domain]
 end
 
 # Get a workflow client to start the workflow
-my_workflow_client = AWS::Flow.workflow_client($SWF.client, $SWF_DOMAIN) do
+my_workflow_client = AWS::Flow.workflow_client($SWF.client, swf_domain) do
   {:from_class => "DelawsWorkflow"}
 end
 
 t1 = Thread.new do
-    activity_worker = AWS::Flow::ActivityWorker.new($SWF.client, $SWF_DOMAIN, $TASK_LIST, DelawsActivity) { {:use_forking => false} }
+    activity_worker = AWS::Flow::ActivityWorker.new($SWF.client, swf_domain, $TASK_LIST, DelawsActivity) { {:use_forking => false} }
     puts "starting activity worker #{Thread.current.object_id}" if @opt[:debug] == true
     activity_worker.start
 end
 
 t2 = Thread.new do
-    worker = AWS::Flow::WorkflowWorker.new($SWF.client, $SWF_DOMAIN, $TASK_LIST, DelawsWorkflow)
+    worker = AWS::Flow::WorkflowWorker.new($SWF.client, swf_domain, $TASK_LIST, DelawsWorkflow)
     puts "starting workflow worker #{Thread.current.object_id}" if @opt[:debug] == true
     worker.start
 end
