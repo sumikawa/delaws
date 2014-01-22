@@ -6,6 +6,7 @@ require 'pry'
 require 'inifile'
 require 'optparse'
 require_relative 'findid'
+require_relative 'task'
 require_relative 'swf'
 
 ini = IniFile.load(File.expand_path("~/.aws/config"))
@@ -27,7 +28,6 @@ Aws.config = {
 
 # for AWS SWF
 swf_domain = "DelAws"
-$TASK_LIST = "delaws_task_list"
 AWS.config(
   access_key_id: ini['default']['aws_access_key_id'],
   secret_access_key: ini['default']['aws_secret_access_key'],
@@ -107,13 +107,13 @@ my_workflow_client = AWS::Flow.workflow_client($SWF.client, swf_domain) do
 end
 
 t1 = Thread.new do
-    activity_worker = AWS::Flow::ActivityWorker.new($SWF.client, swf_domain, $TASK_LIST, DelawsActivity) { {:use_forking => false} }
+    activity_worker = AWS::Flow::ActivityWorker.new($SWF.client, swf_domain, $task_list, DelawsActivity) { {:use_forking => false} }
     puts "starting activity worker #{Thread.current.object_id}" if @opt[:debug] == true
     activity_worker.start
 end
 
 t2 = Thread.new do
-    worker = AWS::Flow::WorkflowWorker.new($SWF.client, swf_domain, $TASK_LIST, DelawsWorkflow)
+    worker = AWS::Flow::WorkflowWorker.new($SWF.client, swf_domain, $task_list, DelawsWorkflow)
     puts "starting workflow worker #{Thread.current.object_id}" if @opt[:debug] == true
     worker.start
 end
