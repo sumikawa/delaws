@@ -38,6 +38,14 @@ AWS.config(
 
 $remove_list = []
 
+$elb = Aws::ElasticLoadBalancing.new
+rs = $elb.describe_load_balancers.load_balancer_descriptions
+if rs
+  rs.each do |r|
+    findid(r, "(security_groups|subnets|vpc_id)", "load_balancer_name", "elb-")
+  end
+end
+
 $ec2 = Aws::EC2.new
 reservations = $ec2.describe_instances.reservations
 if reservations
@@ -49,14 +57,6 @@ end
 ['vpc', 'subnet', 'volume'].each do |r|
   eval("$ec2.describe_#{r}s.first.#{r}s").each do |h|
     findid(h, "_id", "#{r}_id")
-  end
-end
-
-elb = Aws::ElasticLoadBalancing.new
-rs = elb.describe_load_balancers.load_balancer_descriptions
-if rs
-  rs.each do |r|
-    findid(r, "(security_groups|subnets|vpc_id)", "load_balancer_name", "elb-")
   end
 end
 

@@ -31,8 +31,16 @@ class DelawsActivity
         else
           return 60
         end
+      when /^elb-/
+        return 0
       else
-        puts "#{Thread.current.object_id}: check_existence: do_nothing #{name}"
+        begin
+          $elb.describe_load_balancers(load_balancer_names: [name])
+          return 0
+        rescue
+          puts "#{Thread.current.object_id}: check_existence: not_found #{name}"
+          return -1
+        end
       end
       return 0
     rescue
@@ -57,6 +65,10 @@ class DelawsActivity
         puts "#{Thread.current.object_id}: delete_resource: terminating #{name}"
         instance = $ec2.terminate_instances(instance_ids: [name])
         return 10
+      when /^elb-/
+        puts "#{Thread.current.object_id}: delete_resource: deleting #{name}"
+        $elb.delete_load_balancer(load_balancer_name: name.gsub(/^elb-/,""))
+        return 0
       else
         puts "#{Thread.current.object_id}: delete_resource: do_nothing #{name}"
       end
