@@ -36,6 +36,8 @@ AWS.config(
 
 @idx = {}
 
+$remove_list = []
+
 ec2 = Aws::EC2.new
 ['vpc', 'subnet', 'volume'].each do |r|
   eval("ec2.describe_#{r}s.first.#{r}s").each do |h|
@@ -55,7 +57,7 @@ elb = Aws::ElasticLoadBalancing.new
 rs = elb.describe_load_balancers.load_balancer_descriptions
 if rs
   rs.each do |r|
-    findid(r, "(security_groups|subnets|vpc_id)", "load_balancer_name")
+    findid(r, "(security_groups|subnets|vpc_id)", "load_balancer_name", "elb-")
   end
 end
 
@@ -64,7 +66,7 @@ rds = Aws::RDS.new
   rs = eval("rds.describe_#{i}s.#{i}s")
   if rs
     rs.each do |r|
-      findid(r, "(_name|_id)", "#{i}_identifier")
+      findid(r, "(_name|_id)", "#{i}_identifier", "db-")
     end
   end
 end
@@ -92,6 +94,7 @@ if rs
 end
 
 #pp @idx
+pp $remove_list.uniq
 
 swf = AWS::SimpleWorkflow.new
 
@@ -120,9 +123,9 @@ end
 
 puts "Starting an execution..."
 
-workflow_execution = $my_workflow_client.start_execution("a")
-#workflow_execution = $my_workflow_client.start_execution("b")
-#workflow_execution = $my_workflow_client.start_execution("c")
-#workflow_execution = $my_workflow_client.start_execution("d")
+
+$remove_list.uniq.each do |i|
+  $my_workflow_client.start_execution(i)
+end
 
 sleep 100

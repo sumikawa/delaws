@@ -3,7 +3,7 @@ $task_list = "delaws_task_list"
 class DelawsActivity
   extend AWS::Flow::Activities
 
-  activity :delaws_activity do
+  activity :check_existence do
     {
       :default_task_list => $task_list,
       :version => VERSION,
@@ -12,16 +12,12 @@ class DelawsActivity
     }
   end
 
-  def delaws_activity(name)
-    puts "#{Thread.current.object_id}: activity1, #{name}"
-    if name =~ /[0-9]$/
-      "next"
-    else
-      "restart"
-    end
+  def check_existence(name)
+    puts "#{Thread.current.object_id}: check_existence #{name}"
+    return 0
   end
 
-  activity :delaws_activity2 do
+  activity :delete_resource do
     {
       :default_task_list => $task_list,
       :version => VERSION,
@@ -30,9 +26,9 @@ class DelawsActivity
     }
   end
 
-  def delaws_activity2(name)
-    puts "#{Thread.current.object_id}: activity2, #{name}"
-    "finish"
+  def delete_resource(name)
+    puts "#{Thread.current.object_id}: delete_resouce #{name}"
+    return 0
   end
 end
 
@@ -50,16 +46,17 @@ class DelawsWorkflow
   activity_client(:activity) { {:from_class => "DelawsActivity"} }
 
   def delaws_workflow(name)
-    puts "#{Thread.current.object_id}: called"
-    return_value = activity.delaws_activity(name)
-    if return_value == "next"
-      puts "#{Thread.current.object_id}: call activity2 because ret = #{return_value}"
-      return_value = activity.delaws_activity2(name + '0')
+    puts "#{Thread.current.object_id}: called #{name}"
+    timer = activity.check_existence(name)
+    if timer > 0
+      create_timer(timer)
+      continue_as_new(name)
     end
-    if return_value == "restart"
-      puts "#{Thread.current.object_id}: restart because ret = #{return_value}"
-      continue_as_new(name + '0')
+    timer = activity.delete_resource(name)
+    if timer > 0
+      create_timer(timer)
+      continue_as_new(name)
     end
-    puts "#{Thread.current.object_id}: finish"
+    puts "#{Thread.current.object_id}: finish #{name}"
   end
 end
