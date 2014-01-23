@@ -12,11 +12,11 @@ require_relative 'swf'
 ini = IniFile.load(File.expand_path("~/.aws/config"))
 
 region = nil
-@opt = {}
+$opt = {}
 OptionParser.new do |opt|
   opt.version = VERSION
   opt.on('-r REGION', '--region REGION') {|v| region=v }
-  opt.on('-d', '--debug') {|v| @opt[:debug] = true }
+  opt.on('-d', '--debug') {|v| $opt[:debug] = true }
   opt.parse!(ARGV)
 end
 
@@ -34,7 +34,7 @@ AWS.config(
   region: region.nil? ? ini['default']['region'] : region
 )
 
-@idx = {}
+$idx = {}
 
 $remove_list = []
 
@@ -92,7 +92,7 @@ if rs
   end
 end
 
-#pp @idx
+#pp $idx
 pp $remove_list.uniq
 
 swf = AWS::SimpleWorkflow.new
@@ -111,14 +111,14 @@ end
 5.times.each do
   Thread.new do
     activity_worker = AWS::Flow::ActivityWorker.new(swf.client, swf_domain, $task_list, DelawsActivity) { {:use_forking => false} }
-    puts "starting activity worker #{Thread.current.object_id}" if @opt[:debug] == true
+    puts "starting activity worker #{Thread.current.object_id}" if $opt[:debug] == true
     activity_worker.start
   end
 end
 
 t2 = Thread.new do
     worker = AWS::Flow::WorkflowWorker.new(swf.client, swf_domain, $task_list, DelawsWorkflow)
-    puts "starting workflow worker #{Thread.current.object_id}" if @opt[:debug] == true
+    puts "starting workflow worker #{Thread.current.object_id}" if $opt[:debug] == true
     worker.start
 end
 
