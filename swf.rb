@@ -1,3 +1,5 @@
+require 'pry'
+
 $task_list = "delaws_task_list"
 
 class DelawsActivity
@@ -13,8 +15,29 @@ class DelawsActivity
   end
 
   def check_existence(name)
-    puts "#{Thread.current.object_id}: check_existence #{name}"
-    return 0
+#    puts "#{Thread.current.object_id}: check_existence: checking #{name}"
+    begin
+      case name
+      when /^i-/
+        state = $ec2.describe_instances(instance_ids: [name]).reservations.first.instances.first.state.name
+        puts "#{name}: #{state}"
+        case state
+        when "running"
+          return 0
+        when "shutting-down"
+          return 60
+        when "terminated"
+          return -1
+        else
+          return 60
+        end
+      else
+        puts "#{Thread.current.object_id}: check_existence: do_nothing #{name}"
+      end
+      return 0
+    rescue
+      puts "got exception at check_existence!"
+    end
   end
 
   activity :delete_resource do
@@ -27,8 +50,19 @@ class DelawsActivity
   end
 
   def delete_resource(name)
-    puts "#{Thread.current.object_id}: delete_resouce #{name}"
-    return 0
+    puts "#{Thread.current.object_id}: delete_resource #{name}"
+    begin
+      case name
+      when /^i-/
+        puts "#{Thread.current.object_id}: delete_resource: terminating #{name}"
+        instance = $ec2.terminate_instances(instance_ids: [name])
+        return 10
+      else
+        puts "#{Thread.current.object_id}: delete_resource: do_nothing #{name}"
+      end
+    rescue
+      puts "got exception at delete_resource!"
+    end
   end
 end
 
@@ -46,17 +80,19 @@ class DelawsWorkflow
   activity_client(:activity) { {:from_class => "DelawsActivity"} }
 
   def delaws_workflow(name)
-    puts "#{Thread.current.object_id}: called #{name}"
     timer = activity.check_existence(name)
     if timer > 0
+      puts "#{Thread.current.object_id}: waiting #{timer}s #{name}"
       create_timer(timer)
       continue_as_new(name)
+    elsif timer == -1
+#      puts "#{Thread.current.object_id}: forcingly finish #{name}"
+    else
+      timer = activity.delete_resource(name)
+      if timer > 0
+        create_timer(timer)
+        continue_as_new(name)
+      end
     end
-    timer = activity.delete_resource(name)
-    if timer > 0
-      create_timer(timer)
-      continue_as_new(name)
-    end
-    puts "#{Thread.current.object_id}: finish #{name}"
   end
 end

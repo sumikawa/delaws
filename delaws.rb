@@ -38,18 +38,17 @@ AWS.config(
 
 $remove_list = []
 
-ec2 = Aws::EC2.new
-['vpc', 'subnet', 'volume'].each do |r|
-  eval("ec2.describe_#{r}s.first.#{r}s").each do |h|
-    findid(h, "_id", "#{r}_id")
-  end
-end
-
-reservations = ec2.describe_instances.reservations
+$ec2 = Aws::EC2.new
+reservations = $ec2.describe_instances.reservations
 if reservations
   reservations.each do |reservation|
     instance = reservation.instances.first
     findid(instance, "(security_groups|_id)", "instance_id")
+  end
+end
+['vpc', 'subnet', 'volume'].each do |r|
+  eval("$ec2.describe_#{r}s.first.#{r}s").each do |h|
+    findid(h, "_id", "#{r}_id")
   end
 end
 
@@ -123,9 +122,10 @@ end
 
 puts "Starting an execution..."
 
-
 $remove_list.uniq.each do |i|
   $my_workflow_client.start_execution(i)
 end
 
-sleep 100
+loop do
+  sleep 100
+end
