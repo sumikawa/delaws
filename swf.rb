@@ -20,7 +20,7 @@ class DelawsActivity
       case name
       when /^i-/
         state = $ec2.describe_instances(instance_ids: [name]).reservations.first.instances.first.state.name
-        puts "#{name}: #{state}"
+        puts "#{Thread.current.object_id}: #{name}: #{state}"
         case state
         when "running"
           return 0
@@ -32,8 +32,6 @@ class DelawsActivity
           return 60
         end
       when /^elb-/
-        return 0
-      else
         begin
           $elb.describe_load_balancers(load_balancer_names: [name])
           return 0
@@ -42,9 +40,10 @@ class DelawsActivity
           return -1
         end
       end
+      puts "#{Thread.current.object_id}: check_existence: do_nothing #{name}"
       return 0
     rescue
-      puts "got exception at check_existence!"
+      puts "got exception at check_existence"
     end
   end
 
@@ -73,7 +72,7 @@ class DelawsActivity
         puts "#{Thread.current.object_id}: delete_resource: do_nothing #{name}"
       end
     rescue
-      puts "got exception at delete_resource!"
+      puts "#{Thread.current.object_id}: got exception at delete_resource"
     end
   end
 end

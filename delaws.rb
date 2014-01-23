@@ -108,10 +108,12 @@ $my_workflow_client = AWS::Flow.workflow_client(swf.client, swf_domain) do
   {:from_class => "DelawsWorkflow"}
 end
 
-t1 = Thread.new do
+5.times.each do
+  Thread.new do
     activity_worker = AWS::Flow::ActivityWorker.new(swf.client, swf_domain, $task_list, DelawsActivity) { {:use_forking => false} }
     puts "starting activity worker #{Thread.current.object_id}" if @opt[:debug] == true
     activity_worker.start
+  end
 end
 
 t2 = Thread.new do
