@@ -1,3 +1,5 @@
+require_relative 'lib/base'
+require_relative 'lib/redshift'
 require 'pry'
 
 $task_list = "delaws_task_list"
@@ -15,7 +17,7 @@ class DelawsActivity
   end
 
   def check_existence(name)
-#    puts "#{Thread.current.object_id}: check_existence: checking #{name}"
+    puts "#{Thread.current.object_id}: check_existence: checking #{name}"
     begin
       case name
       when /^i-/
@@ -39,11 +41,13 @@ class DelawsActivity
           puts "#{Thread.current.object_id}: check_existence: not_found #{name}"
           return -1
         end
+      when /^redshift-/
+        return $redshift.describe(name)
       end
       puts "#{Thread.current.object_id}: check_existence: do_nothing #{name}"
       return 0
     rescue
-      puts "got exception at check_existence"
+     puts "got exception at check_existence"
     end
   end
 
@@ -61,13 +65,13 @@ class DelawsActivity
     begin
       case name
       when /^i-/
-        puts "#{Thread.current.object_id}: delete_resource: terminating #{name}"
         instance = $ec2.terminate_instances(instance_ids: [name])
         return 10
       when /^elb-/
-        puts "#{Thread.current.object_id}: delete_resource: deleting #{name}"
         $elb.delete_load_balancer(load_balancer_name: name.gsub(/^elb-/,""))
         return 0
+      when /^redshift-/
+        return $redshift.delete(name)
       else
         puts "#{Thread.current.object_id}: delete_resource: do_nothing #{name}"
       end

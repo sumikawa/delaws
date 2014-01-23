@@ -8,6 +8,8 @@ require 'optparse'
 require_relative 'findid'
 require_relative 'task'
 require_relative 'swf'
+require_relative 'lib/base'
+require_relative 'lib/redshift'
 
 ini = IniFile.load(File.expand_path("~/.aws/config"))
 
@@ -35,8 +37,10 @@ AWS.config(
 )
 
 $idx = {}
-
 $remove_list = []
+
+$redshift = DelawsRedshift.new
+$redshift.describe_all
 
 $elb = Aws::ElasticLoadBalancing.new
 rs = $elb.describe_load_balancers.load_balancer_descriptions
@@ -92,9 +96,6 @@ if rs
   end
 end
 
-#pp $idx
-pp $remove_list.uniq
-
 swf = AWS::SimpleWorkflow.new
 
 begin
@@ -116,17 +117,21 @@ end
   end
 end
 
-t2 = Thread.new do
-    worker = AWS::Flow::WorkflowWorker.new(swf.client, swf_domain, $task_list, DelawsWorkflow)
-    puts "starting workflow worker #{Thread.current.object_id}" if $opt[:debug] == true
-    worker.start
+Thread.new do
+  worker = AWS::Flow::WorkflowWorker.new(swf.client, swf_domain, $task_list, DelawsWorkflow)
+  puts "starting workflow worker #{Thread.current.object_id}" if $opt[:debug] == true
+  worker.start
 end
 
+#pp $idx
+pp $remove_list.uniq
 puts "Starting an execution..."
 
 $remove_list.uniq.each do |i|
   $my_workflow_client.start_execution(i)
 end
+
+puts "Waiting workflow"
 
 loop do
   sleep 100
