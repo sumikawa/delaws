@@ -24,7 +24,6 @@ class DelawsRedshift < DelawsBase
         return 60
       end
     rescue
-      puts "#{Thread.current.object_id}: not_found #{name}"
       return -1
     end
   end

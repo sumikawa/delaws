@@ -10,6 +10,7 @@ require_relative 'task'
 require_relative 'swf'
 require_relative 'lib/base'
 require_relative 'lib/redshift'
+require_relative 'lib/elb'
 
 ini = IniFile.load(File.expand_path("~/.aws/config"))
 
@@ -42,13 +43,8 @@ $remove_list = []
 $redshift = DelawsRedshift.new
 $redshift.describe_all
 
-$elb = Aws::ElasticLoadBalancing.new
-rs = $elb.describe_load_balancers.load_balancer_descriptions
-if rs
-  rs.each do |r|
-    findid(r, "(security_groups|subnets|vpc_id)", "load_balancer_name", "elb-")
-  end
-end
+$elb = DelawsElb.new
+$elb.describe_all
 
 $ec2 = Aws::EC2.new
 reservations = $ec2.describe_instances.reservations
