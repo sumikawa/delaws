@@ -21,18 +21,7 @@ class DelawsActivity
     begin
       case name
       when /^i-/
-        state = $ec2.describe_instances(instance_ids: [name]).reservations.first.instances.first.state.name
-        puts "#{Thread.current.object_id}: #{name}: #{state}"
-        case state
-        when "running"
-          return 0
-        when "shutting-down"
-          return 60
-        when "terminated"
-          return -1
-        else
-          return 60
-        end
+        return $ec2.describe(name)
       when /^elb-/
         return $elb.describe(name)
       when /^redshift-/
@@ -59,8 +48,7 @@ class DelawsActivity
     begin
       case name
       when /^i-/
-        instance = $ec2.terminate_instances(instance_ids: [name])
-        return 10
+        return $ec2.delete(name)
       when /^elb-/
         return $elb.delete(name)
       when /^redshift-/

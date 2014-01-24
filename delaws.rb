@@ -11,6 +11,7 @@ require_relative 'swf'
 require_relative 'lib/base'
 require_relative 'lib/redshift'
 require_relative 'lib/elb'
+require_relative 'lib/ec2'
 
 ini = IniFile.load(File.expand_path("~/.aws/config"))
 
@@ -46,16 +47,10 @@ $redshift.describe_all
 $elb = DelawsElb.new
 $elb.describe_all
 
-$ec2 = Aws::EC2.new
-reservations = $ec2.describe_instances.reservations
-if reservations
-  reservations.each do |reservation|
-    instance = reservation.instances.first
-    findid(instance, "(security_groups|_id)", "instance_id")
-  end
-end
+$ec2 = DelawsEc2.new
+$ec2.describe_all
 ['vpc', 'subnet', 'volume'].each do |r|
-  eval("$ec2.describe_#{r}s.first.#{r}s").each do |h|
+  eval("$ec2.ec2.describe_#{r}s.first.#{r}s").each do |h|
     findid(h, "_id", "#{r}_id")
   end
 end
