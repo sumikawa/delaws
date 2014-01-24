@@ -20,7 +20,7 @@ class DelawsActivity
     puts "#{Thread.current.object_id}: check_existence: checking #{name}"
     begin
       case name
-      when /^(i|vol|snap|ami)-/
+      when /^(i|vol|snap|ami|vpc)-/
         return $ec2.describe(name)
       when /^beanstalk-/
         return $beanstalk.describe(name)
@@ -55,7 +55,7 @@ class DelawsActivity
     puts "#{Thread.current.object_id}: delete_resource #{name}"
     begin
       case name
-      when /^(i|vol|snap|ami)-/
+      when /^(i|vol|snap|ami|vpc)-/
         return $ec2.delete(name)
       when /^elb-/
         return $elb.delete(name)

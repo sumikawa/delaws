@@ -13,7 +13,7 @@ class DelawsEc2 < DelawsBase
       end
     end
 #    ['vpc', 'subnet', 'volume'].each do |r|
-    ['volume'].each do |r|
+    ['volume', 'vpc'].each do |r|
       eval("@product.describe_#{r}s.first.#{r}s").each do |h|
         findid(h, "_id", "#{r}_id")
       end
@@ -68,17 +68,23 @@ class DelawsEc2 < DelawsBase
   end
 
   def delete(name)
-    case name
-    when /^i-/
-      @product.terminate_instances(instance_ids: [name])
-      return 10
-    when /^vol-/
-      @product.delete_volume(volume_id: name)
-    when /^snap-/
-      @product.delete_snapshot(snapshot_id: name)
-    when /^ami-/
-      @product.deregister_image(image_id: name)
+    begin
+      case name
+      when /^i-/
+        @product.terminate_instances(instance_ids: [name])
+        return 10
+      when /^vol-/
+        @product.delete_volume(volume_id: name)
+      when /^snap-/
+        @product.delete_snapshot(snapshot_id: name)
+      when /^ami-/
+        @product.deregister_image(image_id: name)
+      when /^vpc-/
+        @product.delete_vpc(vpc_id: name)
+      end
+      return 1
+    rescue => e
+#      pp e
     end
-    return 1
   end
 end

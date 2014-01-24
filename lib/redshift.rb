@@ -35,8 +35,7 @@ class DelawsRedshift < DelawsBase
   def delete(name)
     begin
       cluster = @redshift.delete_cluster(cluster_identifier: name.gsub(/^#{@prefix}/,""),
-                                         skip_final_cluster_snapshot: false,
-                                         final_cluster_snapshot_identifier: "dummy").cluster
+                                         skip_final_cluster_snapshot: true).cluster
       puts "#{name}: #{cluster.cluster_status}"
       case cluster.cluster_status
       when "deleting"
