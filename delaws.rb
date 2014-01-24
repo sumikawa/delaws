@@ -10,6 +10,7 @@ require_relative 'task'
 require_relative 'swf'
 require_relative 'lib/base'
 require_relative 'lib/redshift'
+require_relative 'lib/beanstalk'
 require_relative 'lib/elb'
 require_relative 'lib/ec2'
 
@@ -43,6 +44,9 @@ $remove_list = []
 
 $redshift = DelawsRedshift.new
 $redshift.describe_all
+
+$beanstalk = DelawsBeanstalk.new
+$beanstalk.describe_all
 
 $elb = DelawsElb.new
 $elb.describe_all

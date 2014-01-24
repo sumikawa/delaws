@@ -22,6 +22,8 @@ class DelawsActivity
       case name
       when /^i-/
         return $ec2.describe(name)
+      when /^beanstalk-/
+        return $beanstalk.describe(name)
       when /^elb-/
         return $elb.describe(name)
       when /^redshift-/
@@ -51,6 +53,8 @@ class DelawsActivity
         return $ec2.delete(name)
       when /^elb-/
         return $elb.delete(name)
+      when /^beanstalk-/
+        return $beanstalk.delete(name)
       when /^redshift-/
         return $redshift.delete(name)
       else
