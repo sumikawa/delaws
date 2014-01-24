@@ -22,10 +22,16 @@ ini = IniFile.load(File.expand_path("~/.aws/config"))
 region = nil
 $opt = {}
 OptionParser.new do |opt|
+  opt.banner = "Usage: #{opt.program_name} [options] REGION(e.g. us-east-1)"
   opt.version = VERSION
   opt.on('--go-ahead') {|v| $opt[:delete] = true }
   opt.on('-d', '--debug') {|v| $opt[:debug] = true }
   opt.parse!(ARGV)
+
+  if ARGV.size == 0
+    puts opt.help
+    exit
+  end
 end
 
 region = ARGV[0]
