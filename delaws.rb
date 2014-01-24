@@ -6,7 +6,6 @@ require 'pp'
 require 'pry'
 require 'inifile'
 require 'optparse'
-require_relative 'findid'
 require_relative 'task'
 require_relative 'swf'
 require_relative 'lib/base'
@@ -14,7 +13,9 @@ require_relative 'lib/redshift'
 require_relative 'lib/beanstalk'
 require_relative 'lib/autoscaling'
 require_relative 'lib/elb'
+require_relative 'lib/rds'
 require_relative 'lib/ec2'
+require_relative 'lib/cloudwatch'
 
 ini = IniFile.load(File.expand_path("~/.aws/config"))
 
@@ -36,7 +37,7 @@ Aws.config = {
 }
 
 # for AWS SWF
-delaws_domain = "DelAws"
+delaws_domain = "DelAws2"
 AWS.config(
   access_key_id: ini['default']['aws_access_key_id'],
   secret_access_key: ini['default']['aws_secret_access_key'],
@@ -60,32 +61,15 @@ $as.describe_all
 $elb = DelawsElb.new
 $elb.describe_all
 
+$rds = DelawsRds.new
+$rds.describe_all
+
 $ec2 = DelawsEc2.new
 $ec2.describe_all
 
-rds = Aws::RDS.new
-['db_instance', 'db_snapshot'].each do |i|
-  rs = eval("rds.describe_#{i}s.#{i}s")
-  if rs
-    rs.each do |r|
-      findid(r, "(_name|_id)", "#{i}_identifier", "db-")
-    end
-  end
-end
-rs = rds.describe_events.events
-if rs
-  rs.each do |r|
-    findid(r, "(_name|_id)", "source_identifier")
-  end
-end
+$cw = DelawsCloudWatch.new
+$cw.describe_all
 
-cw = Aws::CloudWatch.new
-rs = cw.describe_alarms.metric_alarms
-if rs
-  rs.each do |r|
-    findid(r, "", "alarm_name")
-  end
-end
 
 swf = AWS::SimpleWorkflow.new
 
@@ -96,7 +80,7 @@ rescue AWS::SimpleWorkflow::Errors::DomainAlreadyExistsFault => e
 end
 
 # Get a workflow client to start the workflow
-$my_workflow_client = AWS::Flow.workflow_client(swf.client, swf_domain) do
+swf_client = AWS::Flow.workflow_client(swf.client, swf_domain) do
   {:from_class => "DelawsWorkflow"}
 end
 
@@ -119,7 +103,7 @@ pp $remove_list.uniq
 puts "Starting an execution..."
 
 $remove_list.uniq.each do |i|
-  $my_workflow_client.start_execution(i)
+  swf_client.start_execution(i)
 end
 
 puts "Waiting workflow"

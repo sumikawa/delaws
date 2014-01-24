@@ -30,6 +30,8 @@ class DelawsActivity
         return $elb.describe(name)
       when /^redshift-/
         return $redshift.describe(name)
+      when /^rds-/
+        return $rds.describe(name)
       end
       puts "#{Thread.current.object_id}: check_existence: do_nothing #{name}"
       return 0
@@ -61,6 +63,8 @@ class DelawsActivity
         return $as.delete(name)
       when /^redshift-/
         return $redshift.delete(name)
+      when /^rds-/
+        return $rds.delete(name)
       else
         puts "#{Thread.current.object_id}: delete_resource: do_nothing #{name}"
       end
