@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# -*- coding: utf-8 -*-
 require 'aws/decider'
 require 'aws-sdk-core'
 require 'pp'
@@ -11,6 +12,7 @@ require_relative 'swf'
 require_relative 'lib/base'
 require_relative 'lib/redshift'
 require_relative 'lib/beanstalk'
+require_relative 'lib/autoscaling'
 require_relative 'lib/elb'
 require_relative 'lib/ec2'
 
@@ -28,7 +30,9 @@ end
 Aws.config = {
   access_key_id: ini['default']['aws_access_key_id'],
   secret_access_key: ini['default']['aws_secret_access_key'],
-  region: region.nil? ? ini['default']['region'] : region,
+#  region: "ap-northeast-1"
+  region: "eu-west-1"
+#  region: region.nil? ? ini['default']['region'] : region,
 }
 
 # for AWS SWF
@@ -36,7 +40,9 @@ delaws_domain = "DelAws"
 AWS.config(
   access_key_id: ini['default']['aws_access_key_id'],
   secret_access_key: ini['default']['aws_secret_access_key'],
-  region: region.nil? ? ini['default']['region'] : region
+#  region: "ap-northeast-1"
+  region: "eu-west-1"
+#  region: region.nil? ? ini['default']['region'] : region
 )
 
 $idx = {}
@@ -48,16 +54,14 @@ $redshift.describe_all
 $beanstalk = DelawsBeanstalk.new
 $beanstalk.describe_all
 
+$as = DelawsAutoScaling.new
+$as.describe_all
+
 $elb = DelawsElb.new
 $elb.describe_all
 
 $ec2 = DelawsEc2.new
 $ec2.describe_all
-['vpc', 'subnet', 'volume'].each do |r|
-  eval("$ec2.ec2.describe_#{r}s.first.#{r}s").each do |h|
-    findid(h, "_id", "#{r}_id")
-  end
-end
 
 rds = Aws::RDS.new
 ['db_instance', 'db_snapshot'].each do |i|
@@ -72,14 +76,6 @@ rs = rds.describe_events.events
 if rs
   rs.each do |r|
     findid(r, "(_name|_id)", "source_identifier")
-  end
-end
-
-as = Aws::AutoScaling.new
-rs = as.describe_auto_scaling_groups.auto_scaling_groups
-if rs
-  rs.each do |r|
-    findid(r, "(vpc_zone_identifier|_name|_id)", "auto_scaling_group_name")
   end
 end
 

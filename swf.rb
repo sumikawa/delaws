@@ -20,10 +20,12 @@ class DelawsActivity
     puts "#{Thread.current.object_id}: check_existence: checking #{name}"
     begin
       case name
-      when /^i-/
+      when /^(i|vol|snap|ami)-/
         return $ec2.describe(name)
       when /^beanstalk-/
         return $beanstalk.describe(name)
+      when /^autoscaling-/
+        return $as.describe(name)
       when /^elb-/
         return $elb.describe(name)
       when /^redshift-/
@@ -49,12 +51,14 @@ class DelawsActivity
     puts "#{Thread.current.object_id}: delete_resource #{name}"
     begin
       case name
-      when /^i-/
+      when /^(i|vol|snap|ami)-/
         return $ec2.delete(name)
       when /^elb-/
         return $elb.delete(name)
       when /^beanstalk-/
         return $beanstalk.delete(name)
+      when /^autoscaling-/
+        return $as.delete(name)
       when /^redshift-/
         return $redshift.delete(name)
       else
