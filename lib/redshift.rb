@@ -5,11 +5,15 @@ class DelawsRedshift < DelawsBase
   end
 
   def describe_all
-    rs = @redshift.describe_clusters.clusters
-    if rs
-      rs.each do |r|
-        findid(r, "(_name|_id)", "cluster_identifier", @prefix)
+    begin
+      rs = @redshift.describe_clusters.clusters
+      if rs
+        rs.each do |r|
+          findid(r, "(_name|_id)", "cluster_identifier", @prefix)
+        end
       end
+    rescue
+      # do nothing. may be no service in the region
     end
   end
 

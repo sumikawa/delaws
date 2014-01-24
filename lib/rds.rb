@@ -14,7 +14,7 @@ class DelawsRds < DelawsBase
     rs = @product.describe_db_snapshots.db_snapshots
     if rs
       rs.each do |r|
-        continue if r.snapshot_type == "automated"
+        next if r.snapshot_type == "automated"
         findid(r, "(_name|_id)", "db_snapshot_identifier", "rds-snapshot-")
       end
     end
