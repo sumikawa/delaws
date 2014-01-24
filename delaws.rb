@@ -23,31 +23,23 @@ region = nil
 $opt = {}
 OptionParser.new do |opt|
   opt.version = VERSION
-  opt.on('-r REGION', '--region REGION') {|v| region=v }
+  opt.on('--go-ahead') {|v| $opt[:delete] = true }
   opt.on('-d', '--debug') {|v| $opt[:debug] = true }
   opt.parse!(ARGV)
 end
 
+region = ARGV[0]
+
 Aws.config = {
   access_key_id: ini['default']['aws_access_key_id'],
   secret_access_key: ini['default']['aws_secret_access_key'],
-#  region: "ap-northeast-1"
-  region: "eu-west-1"
-#  region: region.nil? ? ini['default']['region'] : region,
+  region: region
 }
-
-# for AWS SWF
-delaws_domain = "DelAws2"
-AWS.config(
-  access_key_id: ini['default']['aws_access_key_id'],
-  secret_access_key: ini['default']['aws_secret_access_key'],
-#  region: "ap-northeast-1"
-  region: "eu-west-1"
-#  region: region.nil? ? ini['default']['region'] : region
-)
 
 $idx = {}
 $remove_list = []
+
+puts "listing resources in #{region} region"
 
 $redshift = DelawsRedshift.new
 $redshift.describe_all
@@ -67,16 +59,39 @@ $rds.describe_all
 $ec2 = DelawsEc2.new
 $ec2.describe_all
 
-$cw = DelawsCloudWatch.new
-$cw.describe_all
+$cloudwatch = DelawsCloudWatch.new
+$cloudwatch.describe_all
 
+#pp $idx
+
+$remove_list.uniq!
+if $remove_list.size == 0
+  puts "there is no resources in #{region}. exit"
+  exit
+end
+
+pp $remove_list
+
+unless $opt[:delete]
+  puts "please add --go-ahead option if you want to delete all of resources"
+  exit
+end
+
+# for SWF
+delaws_domain = "DelAws"
+AWS.config(
+  access_key_id: ini['default']['aws_access_key_id'],
+  secret_access_key: ini['default']['aws_secret_access_key'],
+  region: region
+)
 
 swf = AWS::SimpleWorkflow.new
 
 begin
-  swf_domain = swf.domains.create(delaws_domain, "10")
-rescue AWS::SimpleWorkflow::Errors::DomainAlreadyExistsFault => e
   swf_domain = swf.domains[delaws_domain]
+  swf_domain.status
+rescue AWS::SimpleWorkflow::Errors::UnknownResourceFault => e
+  swf.domains.create(delaws_domain, "1")
 end
 
 # Get a workflow client to start the workflow
@@ -98,11 +113,9 @@ Thread.new do
   worker.start
 end
 
-#pp $idx
-pp $remove_list.uniq
 puts "Starting an execution..."
 
-$remove_list.uniq.each do |i|
+$remove_list.each do |i|
   swf_client.start_execution(i)
 end
 

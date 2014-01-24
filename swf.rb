@@ -32,6 +32,8 @@ class DelawsActivity
         return $redshift.describe(name)
       when /^rds-/
         return $rds.describe(name)
+      when /^cloudwatch-/
+        return $cloudwatch.describe(name)
       end
       puts "#{Thread.current.object_id}: check_existence: do_nothing #{name}"
       return 0
@@ -65,6 +67,8 @@ class DelawsActivity
         return $redshift.delete(name)
       when /^rds-/
         return $rds.delete(name)
+      when /^cloudwatch-/
+        return $cloudwatch.delete(name)
       else
         puts "#{Thread.current.object_id}: delete_resource: do_nothing #{name}"
       end

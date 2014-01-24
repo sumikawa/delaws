@@ -9,7 +9,7 @@ class DelawsEc2 < DelawsBase
     if rs
       rs.each do |r|
         instance = r.instances.first
-#        findid(instance, "(security_groups|_id)", "instance_id")
+        findid(instance, "(security_groups|_id)", "instance_id")
       end
     end
 #    ['vpc', 'subnet', 'volume'].each do |r|
@@ -27,50 +27,43 @@ class DelawsEc2 < DelawsBase
   end
 
   def describe(name)
+    begin
     case name
     when /^i-/
-      begin
-        state = @product.describe_instances(instance_ids: [name]).reservations.first.instances.first.state.name
-        puts "#{Thread.current.object_id}: #{name}: #{state}"
-        case state
-        when "running"
-          return 0
-        when "shutting-down"
-          return 60
-        when "terminated"
-          return -1
-        else
-          return 60
-        end
-      rescue
-        puts "#{Thread.current.object_id}: not_found #{name}"
+      state = @product.describe_instances(instance_ids: [name]).reservations.first.instances.first.state.name
+      puts "#{Thread.current.object_id}: #{name}: #{state}"
+      case state
+      when "running"
+        return 0
+      when "shutting-down"
+        return 60
+      when "terminated"
         return -1
+      else
+        return 60
       end
     when /^vol-/
-      begin
-        state = @product.describe_volumes(volume_ids: [name]).volumes.first.state
-        case state
-        when "in-use"
-          return 60
-        else
-          return 0
-        end
+      state = @product.describe_volumes(volume_ids: [name]).volumes.first.state
+      case state
+      when "in-use"
+        return 60
+      else
+        return 0
       end
     when /^snap-/
-      begin
-        state = @product.describe_snapshots(snapshot_ids: [name]).snapshots.first.state
-        case state
-        when "completed"
-          return 0
-        else
-          return 60
-        end
-      rescue
-        puts "#{Thread.current.object_id}: not_found #{name}"
-        return -1
+      state = @product.describe_snapshots(snapshot_ids: [name]).snapshots.first.state
+      case state
+      when "completed"
+        return 0
+      else
+        return 60
       end
     else
       return 0
+    end
+    rescue
+      puts "#{Thread.current.object_id}: not_found #{name}"
+      return -1
     end
   end
 
