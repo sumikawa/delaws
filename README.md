@@ -20,3 +20,15 @@ First, confirm list of resources
 After the confirmation, execute the cleaning them up
 
     bundle exec ./delaws [region name] --go-ahead
+
+Supported Products
+========================
+
+- EC2
+- ELB
+- Redshift
+- AutoScaling
+- CloudWatch
+- RDS
+- Elastic Beanstalk
+
