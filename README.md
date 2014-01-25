@@ -26,6 +26,7 @@ Supported Products
 
 - EC2
 - ELB
+- DynamoDB
 - Redshift
 - AutoScaling
 - CloudWatch
