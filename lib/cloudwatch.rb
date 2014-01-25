@@ -1,14 +1,15 @@
 class DelawsCloudWatch < DelawsBase
+  NAME = "cloudwatch"
   def initialize
-    @prefix = "cloudwatch-"
     @product = Aws::CloudWatch.new
+    $product_prefixes["#{NAME}"] = "#{NAME}"
   end
 
   def describe_all
     rs = @product.describe_alarms.metric_alarms
     if rs
       rs.each do |r|
-        findid(r, "", "alarm_name", @prefix)
+        findid(r, "", "alarm_name", "#{NAME}-")
       end
     end
   end
@@ -18,7 +19,7 @@ class DelawsCloudWatch < DelawsBase
   end
 
   def delete(name)
-    @product.delete_alarms(alarm_names: [name.gsub(/^#{@prefix}/,"")])
+    @product.delete_alarms(alarm_names: [name.gsub(/^#{NAME}-/,"")])
     return 0
   end
 end

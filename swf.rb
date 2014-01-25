@@ -29,8 +29,6 @@ class DelawsActivity
     end
     begin
       case name
-      when /^(i|vol|snap|ami|vpc|subnet|rtb|acl|sg|eipalloc|dopt|rtbassoc)-/
-        return $ec2.describe(name)
       when /^beanstalk-/
         return $beanstalk.describe(name)
       when /^autoscaling-/
@@ -41,8 +39,6 @@ class DelawsActivity
         return $redshift.describe(name)
       when /^rds-/
         return $rds.describe(name)
-      when /^cloudwatch-/
-        return $cloudwatch.describe(name)
       end
       puts "#{Thread.current.object_id}: check_existence: do_nothing #{name}"
       return 0
@@ -68,13 +64,11 @@ class DelawsActivity
           return eval("$#{v}.delete(name)")
         end
       rescue
-        puts "got exception at check_existence"
+        puts "#{Thread.current.object_id}: delete_resource: do_nothing #{name}"
       end
     end
     begin
       case name
-      when /^(i|vol|snap|ami|vpc|subnet|rtb|acl|sg|eipalloc|dopt|rtbassoc)-/
-        return $ec2.delete(name)
       when /^elb-/
         return $elb.delete(name)
       when /^beanstalk-/
@@ -85,8 +79,6 @@ class DelawsActivity
         return $redshift.delete(name)
       when /^rds-/
         return $rds.delete(name)
-      when /^cloudwatch-/
-        return $cloudwatch.delete(name)
       else
         puts "#{Thread.current.object_id}: delete_resource: do_nothing #{name}"
       end
