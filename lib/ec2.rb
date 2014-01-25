@@ -12,11 +12,21 @@ class DelawsEc2 < DelawsBase
         findid(instance, "(security_groups|_id)", "instance_id")
       end
     end
-#    ['vpc', 'subnet', 'volume'].each do |r|
-    ['volume', 'vpc'].each do |r|
+    ['volume', 'route_table', 'network_acl', 'subnet', 'vpc'].each do |r|
       eval("@product.describe_#{r}s.first.#{r}s").each do |h|
         findid(h, "_id", "#{r}_id")
       end
+    end
+    @product.describe_route_tables.route_tables.each do |h|
+      h.associations.each do |a|
+        $remove_list.push(a.route_table_association_id)
+      end
+    end
+    @product.describe_dhcp_options.dhcp_options.each do |h|
+      $remove_list.push(h.dhcp_options_id)
+    end
+    @product.describe_security_groups.first.security_groups.each do |h|
+      findid(h, "_id", "group_id")
     end
     @product.describe_snapshots(owner_ids: ['self']).snapshots.each do |h|
       $remove_list.push(h.snapshot_id)
@@ -58,10 +68,32 @@ class DelawsEc2 < DelawsBase
       else
         return 60
       end
+    when /^vpc-/
+      is_default = @product.describe_vpcs(vpc_ids: [name]).vpcs.first.is_default
+      if is_default == true
+        return -1
+      else
+        return 0
+      end
+    when /^acl-/
+      is_default = @product.describe_network_acls(network_acl_ids: [name]).network_acls.first.is_default
+      if is_default == true
+        return -1
+      else
+        return 0
+      end
+    when /^sg-/
+      name = @product.describe_security_groups(group_ids: [name]).security_groups.first.group_name
+      if name == "default"
+        return -1
+      else
+        return 0
+      end
     else
       return 0
     end
-    rescue
+    rescue => e
+      pp e
       puts "#{Thread.current.object_id}: not_found #{name}"
       return -1
     end
@@ -79,12 +111,26 @@ class DelawsEc2 < DelawsBase
         @product.delete_snapshot(snapshot_id: name)
       when /^ami-/
         @product.deregister_image(image_id: name)
+      when /^subnet-/
+        @product.delete_subnet(subnet_id: name)
       when /^vpc-/
         @product.delete_vpc(vpc_id: name)
+      when /^rtbassoc-/
+        @product.disassociate_route_table(association_id: name)
+      when /^rtb-/
+        @product.delete_route_table(route_table_id: name)
+      when /^acl-/
+        @product.delete_network_acl(network_acl_id: name)
+      when /^sg-/
+        @product.delete_security_group(group_id: name)
+      when /^dopt-/
+        @product.delete_dhcp_options(dhcp_options_id: name)
+      when /^eipalloc-/
+        @product.release_address(allocation_id: name)
       end
       return 1
     rescue => e
-#      pp e
+      pp e
     end
   end
 end
