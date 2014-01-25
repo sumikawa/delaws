@@ -9,6 +9,7 @@ require 'optparse'
 require_relative 'task'
 require_relative 'swf'
 require_relative 'lib/base'
+require_relative 'lib/dynamodb'
 require_relative 'lib/redshift'
 require_relative 'lib/beanstalk'
 require_relative 'lib/autoscaling'
@@ -48,6 +49,9 @@ $idx = {}
 $remove_list = []
 
 puts "listing resources in #{region} region"
+
+$dynamodb = DelawsDynamoDB.new
+$dynamodb.describe_all
 
 $redshift = DelawsRedshift.new
 $redshift.describe_all
