@@ -18,6 +18,15 @@ class DelawsActivity
 
   def check_existence(name)
     puts "#{Thread.current.object_id}: check_existence: checking #{name}"
+    $product_prefixes.each do |k, v|
+      begin
+        if name =~ /^#{k}-/
+          return eval("$#{v}.describe(name)")
+        end
+      rescue
+        puts "got exception at check_existence"
+      end
+    end
     begin
       case name
       when /^(i|vol|snap|ami|vpc|subnet|rtb|acl|sg|eipalloc|dopt|rtbassoc)-/
@@ -53,6 +62,15 @@ class DelawsActivity
 
   def delete_resource(name)
     puts "#{Thread.current.object_id}: delete_resource #{name}"
+    $product_prefixes.each do |k, v|
+      begin
+        if name =~ /^#{k}-/
+          return eval("$#{v}.delete(name)")
+        end
+      rescue
+        puts "got exception at check_existence"
+      end
+    end
     begin
       case name
       when /^(i|vol|snap|ami|vpc|subnet|rtb|acl|sg|eipalloc|dopt|rtbassoc)-/

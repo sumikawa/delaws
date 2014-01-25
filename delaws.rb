@@ -15,11 +15,13 @@ require_relative 'lib/autoscaling'
 require_relative 'lib/elb'
 require_relative 'lib/rds'
 require_relative 'lib/ec2'
+require_relative 'lib/cloudformation'
 require_relative 'lib/cloudwatch'
 
 ini = IniFile.load(File.expand_path("~/.aws/config"))
 
 region = nil
+$product_prefixes = {}
 $opt = {}
 OptionParser.new do |opt|
   opt.banner = "Usage: #{opt.program_name} [options] REGION(e.g. us-east-1)"
@@ -52,6 +54,9 @@ $redshift.describe_all
 
 $beanstalk = DelawsBeanstalk.new
 $beanstalk.describe_all
+
+$cloudformation = DelawsCloudFormation.new
+$cloudformation.describe_all
 
 $as = DelawsAutoScaling.new
 $as.describe_all

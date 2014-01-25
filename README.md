@@ -29,6 +29,6 @@ Supported Products
 - Redshift
 - AutoScaling
 - CloudWatch
+- CloudFormation
 - RDS
 - Elastic Beanstalk
-
