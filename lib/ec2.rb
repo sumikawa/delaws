@@ -15,7 +15,8 @@ class DelawsEc2 < DelawsBase
         findid(instance, "(security_groups|_id)", "instance_id")
       end
     end
-    ['volume', 'route_table', 'network_acl', 'subnet', 'vpc'].each do |r|
+#    ['volume', 'route_table', 'network_acl', 'subnet', 'vpc'].each do |r|
+    ['volume', 'route_table', 'network_acl', 'vpc'].each do |r|
       eval("@product.describe_#{r}s.first.#{r}s").each do |h|
         findid(h, "_id", "#{r}_id")
       end
