@@ -15,8 +15,7 @@ class DelawsEc2 < DelawsBase
         findid(instance, "(security_groups|_id)", "instance_id")
       end
     end
-#    ['volume', 'route_table', 'network_acl', 'subnet', 'vpc'].each do |r|
-    ['volume', 'route_table', 'network_acl', 'vpc'].each do |r|
+    ['volume', 'route_table', 'network_acl', 'subnet', 'vpc'].each do |r|
       eval("@product.describe_#{r}s.first.#{r}s").each do |h|
         findid(h, "_id", "#{r}_id")
       end
@@ -74,6 +73,13 @@ class DelawsEc2 < DelawsBase
       end
     when /^vpc-/
       is_default = @product.describe_vpcs(vpc_ids: [name]).vpcs.first.is_default
+      if is_default == true
+        return -1
+      else
+        return 0
+      end
+    when /^subnet-/
+      is_default = @product.describe_subnets(subnet_ids: [name]).subnets.first.default_for_az
       if is_default == true
         return -1
       else
