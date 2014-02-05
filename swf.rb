@@ -17,7 +17,7 @@ class DelawsActivity
   end
 
   def check_existence(name)
-    puts "#{Thread.current.object_id}: check_existence: checking #{name}"
+    puts "#{Thread.current.object_id}: check_existence: checking #{name}" if $opt[:debug] == true
     $product_prefixes.each do |k, v|
       begin
         if name =~ /^#{k}-/
