@@ -25,6 +25,9 @@ class DelawsEc2 < DelawsBase
         $remove_list.push(a.route_table_association_id)
       end
     end
+    @product.describe_addresses.addresses.each do |h|
+      $remove_list.push(h.allocation_id)
+    end
     @product.describe_dhcp_options.dhcp_options.each do |h|
       $remove_list.push(h.dhcp_options_id)
     end

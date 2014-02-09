@@ -24,12 +24,13 @@ After the confirmation, execute the cleaning them up
 Supported Products
 ========================
 
+- AutoScaling
+- CloudFormation
+- CloudFront
+- CloudWatch
+- DynamoDB
 - EC2
 - ELB
-- DynamoDB
-- Redshift
-- AutoScaling
-- CloudWatch
-- CloudFormation
-- RDS
 - Elastic Beanstalk
+- RDS
+- Redshift

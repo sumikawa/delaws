@@ -9,15 +9,17 @@ require 'optparse'
 require_relative 'task'
 require_relative 'swf'
 require_relative 'lib/base'
-require_relative 'lib/dynamodb'
-require_relative 'lib/redshift'
-require_relative 'lib/beanstalk'
+
 require_relative 'lib/autoscaling'
+require_relative 'lib/beanstalk'
+require_relative 'lib/cloudformation'
+require_relative 'lib/cloudfront'
+require_relative 'lib/cloudwatch'
+require_relative 'lib/dynamodb'
+require_relative 'lib/ec2'
 require_relative 'lib/elb'
 require_relative 'lib/rds'
-require_relative 'lib/ec2'
-require_relative 'lib/cloudformation'
-require_relative 'lib/cloudwatch'
+require_relative 'lib/redshift'
 
 ini = IniFile.load(File.expand_path("~/.aws/config"))
 
@@ -50,6 +52,9 @@ $remove_list = []
 
 puts "listing resources in #{region} region"
 
+$cloudfront = DelawsCloudFront.new
+$cloudfront.describe_all
+
 $dynamodb = DelawsDynamoDB.new
 $dynamodb.describe_all
 
@@ -77,7 +82,7 @@ $ec2.describe_all
 $cloudwatch = DelawsCloudWatch.new
 $cloudwatch.describe_all
 
-#pp $idx
+pp $idx if $opt[:debug] == true
 
 $remove_list.uniq!
 if $remove_list.size == 0
@@ -128,8 +133,6 @@ Thread.new do
   worker.start
 end
 
-puts "Starting an execution..."
-
 $remove_list.each do |i|
   swf_client.start_execution(i)
 end
@@ -138,4 +141,23 @@ puts "Waiting workflow"
 
 loop do
   sleep 100
+end
+
+swf_domain.activity_tasks.poll($task_list) do |activity_task|
+  begin
+    puts "Starting an execution..."
+    activity_task.record_heartbeat! :details => '25%'
+    puts "25%"
+    activity_task.record_heartbeat! :details => '50%'
+    puts "50%"
+    activity_task.record_heartbeat! :details => '75%'
+    puts "50%"
+    activity_task.record_heartbeat! :details => '99%'
+    puts "99%"
+    activity_task.record_heartbeat! :details => '100%'
+    puts "finished!"
+  rescue ActivityTask::CancelRequestedError
+    # cleanup after ourselves
+    activity_task.cancel!
+  end
 end
