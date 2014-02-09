@@ -29,8 +29,6 @@ class DelawsActivity
     end
     begin
       case name
-      when /^beanstalk-/
-        return $beanstalk.describe(name)
       when /^autoscaling-/
         return $as.describe(name)
       when /^elb-/
@@ -71,8 +69,6 @@ class DelawsActivity
       case name
       when /^elb-/
         return $elb.delete(name)
-      when /^beanstalk-/
-        return $beanstalk.delete(name)
       when /^autoscaling-/
         return $as.delete(name)
       when /^redshift-/
