@@ -29,8 +29,9 @@ $opt = {}
 OptionParser.new do |opt|
   opt.banner = "Usage: #{opt.program_name} [options] REGION(e.g. us-east-1)"
   opt.version = VERSION
-  opt.on('--go-ahead') {|v| $opt[:delete] = true }
-  opt.on('-d', '--debug') {|v| $opt[:debug] = true }
+  opt.on('--go-ahead', 'Execute deleting') {|v| $opt[:delete] = true }
+  opt.on('--global', 'Delete global resources') {|v| $opt[:global] = true }
+  opt.on('-d', '--debug', 'Debug mode') {|v| $opt[:debug] = true }
   opt.parse!(ARGV)
 
   if ARGV.size == 0
@@ -52,8 +53,10 @@ $remove_list = []
 
 puts "listing resources in #{region} region"
 
-$cloudfront = DelawsCloudFront.new
-$cloudfront.describe_all
+if $opt[:global] == true
+  $cloudfront = DelawsCloudFront.new
+  $cloudfront.describe_all
+end
 
 $dynamodb = DelawsDynamoDB.new
 $dynamodb.describe_all
@@ -100,9 +103,9 @@ end
 # for SWF
 delaws_domain = "DelAws"
 AWS.config(
-  access_key_id: ini['default']['aws_access_key_id'],
-  secret_access_key: ini['default']['aws_secret_access_key'],
-  region: region
+           access_key_id: ini['default']['aws_access_key_id'],
+           secret_access_key: ini['default']['aws_secret_access_key'],
+           region: region
 )
 
 swf = AWS::SimpleWorkflow.new
