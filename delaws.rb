@@ -23,6 +23,7 @@ require_relative 'lib/redshift'
 
 ini = IniFile.load(File.expand_path("~/.aws/config"))
 
+profile = 'default'
 region = nil
 $product_prefixes = {}
 $opt = {}
@@ -30,7 +31,8 @@ OptionParser.new do |opt|
   opt.banner = "Usage: #{opt.program_name} [options] REGION(e.g. us-east-1)"
   opt.version = VERSION
   opt.on('--go-ahead', 'Execute deleting') {|v| $opt[:delete] = true }
-  opt.on('--global', 'Delete global resources') {|v| $opt[:global] = true }
+  opt.on('-p PROFILE', '--profile PROFILE', 'Specify profile') {|v| profile = "profile #{v}" }
+  opt.on('-g', '--global', 'Delete global resources') {|v| $opt[:global] = true }
   opt.on('-d', '--debug', 'Debug mode') {|v| $opt[:debug] = true }
   opt.parse!(ARGV)
 
@@ -42,9 +44,14 @@ end
 
 region = ARGV[0]
 
+access_key_id = ENV['AWS_ACCESS_KEY_ID'] || ini[profile]['aws_access_key_id']
+abort "No access key ID specified" unless defined?(access_key_id)
+secret_access_key = ENV['AWS_SECRET_ACCESS_KEY'] || ini[profile]['aws_secret_access_key'];
+abort "No secret access key specified" unless defined?(secret_access_key)
+
 Aws.config = {
-  access_key_id: ini['default']['aws_access_key_id'],
-  secret_access_key: ini['default']['aws_secret_access_key'],
+  access_key_id: access_key_id,
+  secret_access_key: secret_access_key,
   region: region
 }
 
@@ -103,8 +110,8 @@ end
 # for SWF
 delaws_domain = "DelAws"
 AWS.config(
-           access_key_id: ini['default']['aws_access_key_id'],
-           secret_access_key: ini['default']['aws_secret_access_key'],
+           access_key_id: access_key_id,
+           secret_access_key: secret_access_key,
            region: region
 )
 
