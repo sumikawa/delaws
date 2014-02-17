@@ -1,7 +1,3 @@
-require_relative 'lib/base'
-require_relative 'lib/redshift'
-require 'pry'
-
 $task_list = "delaws_task_list"
 
 class DelawsActivity
@@ -27,22 +23,6 @@ class DelawsActivity
         puts "got exception at check_existence"
       end
     end
-    begin
-      case name
-      when /^autoscaling-/
-        return $as.describe(name)
-      when /^elb-/
-        return $elb.describe(name)
-      when /^redshift-/
-        return $redshift.describe(name)
-      when /^rds-/
-        return $rds.describe(name)
-      end
-      puts "#{Thread.current.object_id}: check_existence: do_nothing #{name}"
-      return 0
-    rescue
-     puts "got exception at check_existence"
-    end
   end
 
   activity :delete_resource do
@@ -64,22 +44,6 @@ class DelawsActivity
       rescue
         puts "#{Thread.current.object_id}: delete_resource: do_nothing #{name}"
       end
-    end
-    begin
-      case name
-      when /^elb-/
-        return $elb.delete(name)
-      when /^autoscaling-/
-        return $as.delete(name)
-      when /^redshift-/
-        return $redshift.delete(name)
-      when /^rds-/
-        return $rds.delete(name)
-      else
-        puts "#{Thread.current.object_id}: delete_resource: do_nothing #{name}"
-      end
-    rescue
-      puts "#{Thread.current.object_id}: got exception at delete_resource"
     end
   end
 end
