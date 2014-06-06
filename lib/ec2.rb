@@ -2,7 +2,7 @@ class DelawsEc2 < DelawsBase
   def initialize
     @prefix = ""
     @product = Aws::EC2.new
-    ["i", "vol", "snap", "ami", "vpc", "subnet", "rtb", "acl", "sg", "eipalloc", "dopt", "rtbassoc"].each do |k|
+    ["i", "vol", "snap", "ami", "vpc", "subnet", "rtb", "acl", "sg", "eipalloc", "dopt", "rtbassoc", "eni"].each do |k|
       $product_prefixes[k] = "ec2"
     end
   end
@@ -19,6 +19,9 @@ class DelawsEc2 < DelawsBase
       eval("@product.describe_#{r}s.first.#{r}s").each do |h|
         findid(h, "_id", "#{r}_id")
       end
+    end
+    @product.describe_network_interfaces.network_interfaces.each do |h|
+      $remove_list.push(h.network_interface_id)
     end
     @product.describe_route_tables.route_tables.each do |h|
       h.associations.each do |a|
@@ -140,6 +143,8 @@ class DelawsEc2 < DelawsBase
         @product.delete_dhcp_options(dhcp_options_id: name)
       when /^eipalloc-/
         @product.release_address(allocation_id: name)
+      when /^eni-/
+        @product.delete_network_interface(network_interface_id: name)
       end
       return 1
     rescue => e
