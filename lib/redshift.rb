@@ -1,13 +1,13 @@
 class DelawsRedshift < DelawsBase
   NAME = "redshift"
   def initialize
-    @redshift = Aws::Redshift.new
+    @product = Aws::Redshift.new
     $product_prefixes["#{NAME}"] = "#{NAME}"
   end
 
   def describe_all
     begin
-      rs = @redshift.describe_clusters.clusters
+      rs = @product.describe_clusters.clusters
       if rs
         rs.each do |r|
           findid(r, "(_name|_id)", "cluster_identifier", "#{NAME}-")
@@ -20,7 +20,7 @@ class DelawsRedshift < DelawsBase
 
   def describe(name)
     begin
-      cluster = @redshift.describe_clusters(cluster_identifier: name.gsub(/^#{NAME}-/,"")).clusters.first
+      cluster = @product.describe_clusters(cluster_identifier: name.gsub(/^#{NAME}-/,"")).clusters.first
       case cluster.cluster_status
       when "available"
         return 0
@@ -35,7 +35,7 @@ class DelawsRedshift < DelawsBase
 
   def delete(name)
     begin
-      cluster = @redshift.delete_cluster(cluster_identifier: name.gsub(/^#{NAME}-/,""),
+      cluster = @product.delete_cluster(cluster_identifier: name.gsub(/^#{NAME}-/,""),
                                          skip_final_cluster_snapshot: true).cluster
       puts "#{name}: #{cluster.cluster_status}"
       case cluster.cluster_status
