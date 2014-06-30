@@ -18,6 +18,7 @@ require_relative 'lib/cloudwatch'
 require_relative 'lib/dynamodb'
 require_relative 'lib/ec2'
 require_relative 'lib/elb'
+require_relative 'lib/elasticache'
 require_relative 'lib/rds'
 require_relative 'lib/redshift'
 
@@ -91,6 +92,9 @@ $ec2.describe_all
 
 $cloudwatch = DelawsCloudWatch.new
 $cloudwatch.describe_all
+
+$elasticache = DelawsElastiCache.new
+$elasticache.describe_all
 
 pp $idx if $opt[:debug] == true
 
