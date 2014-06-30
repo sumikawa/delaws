@@ -31,6 +31,7 @@ Supported Products
 - DynamoDB
 - EC2
 - ELB
+- ElastiCache
 - Elastic Beanstalk
 - RDS
 - Redshift
