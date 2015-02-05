@@ -1,7 +1,7 @@
 class DelawsCloudFormation < DelawsBase
   NAME = "cloudformation"
   def initialize
-    @product = Aws::CloudFormation.new
+    @product = Aws::CloudFormation::Client.new
     $product_prefixes["#{NAME}"] = "#{NAME}"
   end
 

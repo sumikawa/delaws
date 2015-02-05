@@ -1,7 +1,7 @@
 class DelawsDynamoDB < DelawsBase
   NAME = "dynamodb"
   def initialize
-    @product = Aws::DynamoDB.new
+    @product = Aws::DynamoDB::Client.new
     $product_prefixes["#{NAME}"] = "#{NAME}"
   end
 

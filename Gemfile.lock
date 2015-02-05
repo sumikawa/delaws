@@ -5,11 +5,15 @@ GEM
     aws-flow (2.4.0)
       aws-sdk-v1 (~> 1, >= 1.60.2)
       lru_redux (~> 0, >= 0.8.1)
+    aws-sdk (2.0.21.pre)
+      aws-sdk-resources (= 2.0.21.pre)
     aws-sdk-core (2.0.21)
       builder (~> 3.0)
       jmespath (~> 1.0)
       multi_json (~> 1.0)
       multi_xml (~> 0.5)
+    aws-sdk-resources (2.0.21.pre)
+      aws-sdk-core (= 2.0.21)
     aws-sdk-v1 (1.61.0)
       json (~> 1.4)
       nokogiri (>= 1.4.4)
@@ -38,6 +42,6 @@ PLATFORMS
 DEPENDENCIES
   awesome_print
   aws-flow
-  aws-sdk-core (~> 2.0.0.rc1)
+  aws-sdk (~> 2.0.0.rc1)
   inifile
   pry

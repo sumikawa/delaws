@@ -1,7 +1,7 @@
 class DelawsRds < DelawsBase
   NAME = "rds"
   def initialize
-    @product = Aws::RDS.new
+    @product = Aws::RDS::Client.new
     $product_prefixes["#{NAME}"] = "#{NAME}"
   end
 

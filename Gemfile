@@ -1,5 +1,5 @@
 source 'https://rubygems.org'
-gem 'aws-sdk-core', '~> 2.0.0.rc1'
+gem 'aws-sdk', '~> 2.0.0.rc1'
 gem 'aws-flow'
 gem 'pry'
 gem 'awesome_print'

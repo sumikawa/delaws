@@ -1,7 +1,7 @@
 class DelawsRedshift < DelawsBase
   NAME = "redshift"
   def initialize
-    @product = Aws::Redshift.new
+    @product = Aws::Redshift::Client.new
     $product_prefixes["#{NAME}"] = "#{NAME}"
   end
 

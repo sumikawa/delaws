@@ -1,7 +1,7 @@
 class DelawsCloudWatch < DelawsBase
   NAME = "cloudwatch"
   def initialize
-    @product = Aws::CloudWatch.new
+    @product = Aws::CloudWatch::Client.new
     $product_prefixes["#{NAME}"] = "#{NAME}"
   end
 

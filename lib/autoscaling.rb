@@ -1,7 +1,7 @@
 class DelawsAutoScaling < DelawsBase
   NAME = "autoscaling"
   def initialize
-    @product = Aws::AutoScaling.new
+    @product = Aws::AutoScaling::Client.new
     $product_prefixes["#{NAME}"] = "#{NAME}"
   end
 

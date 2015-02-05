@@ -1,7 +1,7 @@
 class DelawsBeanstalk < DelawsBase
   NAME = "beanstalk"
   def initialize
-    @product = Aws::ElasticBeanstalk.new
+    @product = Aws::ElasticBeanstalk::Client.new
     $product_prefixes["#{NAME}"] = "#{NAME}"
   end
 

@@ -1,7 +1,7 @@
 class DelawsElb < DelawsBase
   NAME = "elb"
   def initialize
-    @product = Aws::ElasticLoadBalancing.new
+    @product = Aws::ElasticLoadBalancing::Client.new
     $product_prefixes["#{NAME}"] = "#{NAME}"
   end
 

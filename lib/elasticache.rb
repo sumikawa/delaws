@@ -1,7 +1,7 @@
 class DelawsElastiCache < DelawsBase
   NAME = "elasticache"
   def initialize
-    @product = Aws::ElastiCache.new
+    @product = Aws::ElastiCache::Client.new
     $product_prefixes["#{NAME}"] = "#{NAME}"
   end
 

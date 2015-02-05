@@ -1,7 +1,7 @@
 class DelawsEc2 < DelawsBase
   def initialize
     @prefix = ""
-    @product = Aws::EC2.new
+    @product = Aws::EC2::Client.new
     ["i", "vol", "snap", "ami", "vpc", "subnet", "rtb", "acl", "sg", "eipalloc", "dopt", "rtbassoc", "eni"].each do |k|
       $product_prefixes[k] = "ec2"
     end
