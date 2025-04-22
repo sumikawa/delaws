@@ -1640,7 +1640,7 @@ GEM
     lru_redux (0.8.4)
     method_source (1.1.0)
     mini_portile2 (2.8.8)
-    nokogiri (1.18.7)
+    nokogiri (1.18.8)
       mini_portile2 (~> 2.8.2)
       racc (~> 1.4)
     pry (0.15.2)
